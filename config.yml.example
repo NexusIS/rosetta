@@ -1,0 +1,23 @@
+trello:
+  board_name_patterns:
+
+    # String or regex of the product backlog board's name
+    product_backlog: "Product Backlog"
+
+    # Regex of your sprint backlog boards' names. The first
+    # match group in the regex must be the sprint number
+    sprint_backlog: "Sprint (\\d+)"
+
+  # Get your api_key and api_secret from https://trello.com/1/appKey/generate
+  api_key: <YOUR API KEY HERE>
+  api_secret: <YOUR API SECRET HERE>
+
+  # Helps trello.py determine if a card is done. Only the
+  # 'done' section is relevant for now. Put the names of
+  # your 'done' lists there.
+  list_name_types:
+    wip:
+      - 'Doing'
+      - 'Impeded'
+    done:
+      - 'Done'
