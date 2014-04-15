@@ -154,6 +154,8 @@ for index in range(0, len(timeline)):
         datetime_out = "N/A"
         total_time = utc_now - datetime_in
 
+    total_time = total_time.seconds/60
+
     # SANITIZE A createCard EVENT'S BOARD INFORMATION
     # If the current event is a 'createCard' and the respective card was
     # moved further down in the timeline, then the board information in the
@@ -190,7 +192,7 @@ for index in range(0, len(timeline)):
     # then it was moved to done correctly. Don't count its time.
     if card_list['name'] in config['trello']['list_name_types']['done'] \
        and datetime_out == 'N/A':
-        total_time = 'N/A'
+        total_time = ''
 
     card_name = card['name']
     card_name = (card_name[:30].strip() + '...') \
@@ -200,13 +202,27 @@ for index in range(0, len(timeline)):
           (card['id'], card_name, event['data']['board']['name'],
            card_list['name'], total_time)
 
+    # Convert times to local time for display
+    # TODO: Make the local tz configurable
+    local_tz = pytz.timezone(config['common']['local_timezone'])
+
+    local_datetime_in = datetime_in.astimezone(
+        local_tz).strftime("%Y-%m-%d %H:%M:%S")
+
+    if isinstance(datetime_out, basestring):
+        local_datetime_out = datetime_out
+    else:
+        local_datetime_out = datetime_out.astimezone(
+            local_tz).strftime("%Y-%m-%d %H:%M:%S")
+
+    # Finally, record the data
     time_spent_in_list.append({
         'card_id': card['id'],
         'card_name': card['name'].strip(),
         'board_name': event['data']['board']['name'],
         'list_name': card_list['name'],
-        'datetime_in': datetime_in,
-        'datetime_out': datetime_out,
+        'datetime_in': local_datetime_in,
+        'datetime_out': local_datetime_out,
         'total_time': total_time})
 
 # ============
@@ -218,9 +234,13 @@ csvpath = path.abspath(path.join(__file__, '..', '..', csvname))
 
 with open(csvpath, 'wb') as csvfile:
     writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-    writer.writerow(["As of %s" % utc_now, "", "", "", "", "", ""])
+    local_time_now = utc_now.astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S")
+    writer.writerow(["As of %s (%s)" % (local_time_now, local_tz),
+                    "", "", "", "", "", ""])
     writer.writerow(["Card ID", "Card Name", "Board", "List",
-                     "In", "Out", "Time In List"])
+                     "In (%s)" % local_tz,
+                     "Out (%s)" % local_tz,
+                     "Time In List (Minutes)"])
 
     for row in time_spent_in_list:
         r = [row['card_id'], row['card_name'].encode('utf-8'),

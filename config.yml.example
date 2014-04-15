@@ -1,3 +1,7 @@
+common:
+  # See the complete list at http://stackoverflow.com/q/13866926/402145
+  local_timezone: 'US/Pacific'
+
 trello:
   board_name_patterns:
 
