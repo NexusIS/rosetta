@@ -1,6 +1,7 @@
 import csv
 from datetime import datetime
 import dateutil.parser as dateparser
+import decimal
 import json
 import os.path as path
 import pytz
@@ -149,12 +150,12 @@ for index in range(0, len(timeline)):
     # as well as compute the time the card spent on that list
     if next_event and next_card['id'] == card['id']:
         datetime_out = dateparser.parse(next_event['date'])
-        total_time = datetime_out - datetime_in
+        duration = datetime_out - datetime_in
     else:
         datetime_out = "N/A"
-        total_time = utc_now - datetime_in
+        duration = utc_now - datetime_in
 
-    total_time = total_time.seconds/60
+    duration = "{:.0f}".format(duration.total_seconds())
 
     # SANITIZE A createCard EVENT'S BOARD INFORMATION
     # If the current event is a 'createCard' and the respective card was
@@ -192,7 +193,7 @@ for index in range(0, len(timeline)):
     # then it was moved to done correctly. Don't count its time.
     if card_list['name'] in config['trello']['list_name_types']['done'] \
        and datetime_out == 'N/A':
-        total_time = ''
+        duration = ''
 
     card_name = card['name']
     card_name = (card_name[:30].strip() + '...') \
@@ -200,7 +201,7 @@ for index in range(0, len(timeline)):
 
     print "   %s %s | %s:%s | time: %s" % \
           (card['id'], card_name, event['data']['board']['name'],
-           card_list['name'], total_time)
+           card_list['name'], duration)
 
     # Convert times to local time for display
     # TODO: Make the local tz configurable
@@ -223,7 +224,7 @@ for index in range(0, len(timeline)):
         'list_name': card_list['name'],
         'datetime_in': local_datetime_in,
         'datetime_out': local_datetime_out,
-        'total_time': total_time})
+        'duration': duration})
 
 # ============
 # WRITE TO CSV
@@ -240,11 +241,11 @@ with open(csvpath, 'wb') as csvfile:
     writer.writerow(["Card ID", "Card Name", "Board", "List",
                      "In (%s)" % local_tz,
                      "Out (%s)" % local_tz,
-                     "Time In List (Minutes)"])
+                     "Duration (Seconds)"])
 
     for row in time_spent_in_list:
         r = [row['card_id'], row['card_name'].encode('utf-8'),
              row['board_name'], row['list_name'], row['datetime_in'],
-             row['datetime_out'], row['total_time']]
+             row['datetime_out'], row['duration']]
 
         writer.writerow(r)
