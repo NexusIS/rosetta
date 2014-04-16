@@ -259,6 +259,11 @@ for index in range(0, len(timeline)):
         local_datetime_out = datetime_out.astimezone(
             local_tz).strftime("%Y-%m-%d %H:%M:%S")
 
+    if card['id'] in current_labels_of.keys():
+        labels = current_labels_of[card['id']]
+    else:
+        labels = []
+
     # Finally, record the data
     time_spent_in_list.append({
         'card_id': card['id'],
@@ -268,7 +273,8 @@ for index in range(0, len(timeline)):
         'datetime_in': local_datetime_in,
         'datetime_out': local_datetime_out,
         'duration': duration,
-        'members': members})
+        'members': members,
+        'labels': labels})
 
 # ============
 # WRITE TO CSV
@@ -281,14 +287,16 @@ with open(csvpath, 'wb') as csvfile:
     writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
     local_time_now = utc_now.astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S")
     writer.writerow(["As of %s (%s)" % (local_time_now, local_tz),
-                    "", "", "", "", "", "", ""])
-    writer.writerow(["Card ID", "Card Name", "Members", "Board", "List",
+                    "", "", "", "", "", "", "", ""])
+    writer.writerow(["Card ID", "Card Name", "Labels",
+                     "Members", "Board", "List",
                      "In (%s)" % local_tz,
                      "Out (%s)" % local_tz,
                      "Duration (Seconds)"])
 
     for row in time_spent_in_list:
         r = [row['card_id'], row['card_name'].encode('utf-8'),
+             ', '.join([l['name'] for l in row['labels']]),
              ', '.join([m['fullName'] for m in row['members']]),
              row['board_name'], row['list_name'], row['datetime_in'],
              row['datetime_out'], row['duration']]
