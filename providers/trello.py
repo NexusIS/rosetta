@@ -94,7 +94,8 @@ timeline = []
 for board in boards:
     timeline += get_json('/boards/%s/actions' % board['id'],
                          'filter=createCard,updateCard:idList,' +
-                         'moveCardFromBoard,moveCardToBoard')
+                         'moveCardFromBoard,moveCardToBoard,' +
+                         'addMemberToCard,removeMemberFromCard')
 
 # Sort events in the timeline by card id, then event date
 timeline = sorted(timeline, key=lambda event: (event['data']['card']['id'],
@@ -117,19 +118,18 @@ time_spent_in_list = []
 # This will serve as cache for the current list of a card
 current_list_of = {}
 
+# Used throughout the loop to determine who are the members of current card
+members = []
+
 for index in range(0, len(timeline)):
     event = timeline[index]
     card = event['data']['card']
 
-    # This event is redundant. Its corresponding 'moveCardToBoard' will do.
-    # So let's skip ahead to the next event.
-    if event['type'] == 'moveCardFromBoard':
-        continue
-
-    # TODO: There are instances when the first item is a moveCardFromBoard.
-    # Handle that here!
-
-    datetime_in = dateparser.parse(event['date'])
+    # Look back to the previous event
+    if index == 0:
+        prev_card = None
+    else:
+        prev_card = timeline[index - 1]['data']['card']
 
     # Take a peek at the next event
     if event['type'] == 'moveCardToBoard' and index < len(timeline) - 2:
@@ -145,6 +145,38 @@ for index in range(0, len(timeline)):
         next_card = next_event['data']['card']
     else:
         next_event = next_card = None
+
+    # Determine who are the members of the current card
+    if event['type'] in ['addMemberToCard', 'removeMemberFromCard']:
+        if event['type'] == 'addMemberToCard' and (prev_card is None
+           or prev_card['id'] != card['id']):
+            # Start of timeline or we've moved to another card
+            members = [event['member']]
+
+        elif event['type'] == 'addMemberToCard' and \
+                prev_card['id'] == card['id'] and \
+                event['member']['id'] not in [m['id'] for m in members]:
+            # Same card but new event
+            members.append(event['member'])
+
+        elif event['type'] == 'removeMemberFromCard':
+            # We don't care where we are in the timeline. Just remove
+            # that member from the members list.
+            members = [m for m in members if m['id'] != event['member']['id']]
+
+        # We don't need anything else from this
+        # event. Move on to the next one
+        continue
+
+    # This event is redundant. Its corresponding 'moveCardToBoard' will do.
+    # So let's skip ahead to the next event.
+    if event['type'] == 'moveCardFromBoard':
+        continue
+
+    # TODO: There are instances when the first item is a moveCardFromBoard.
+    # Handle that here!
+
+    datetime_in = dateparser.parse(event['date'])
 
     # Based on what's next, determine when the card left the list
     # as well as compute the time the card spent on that list
@@ -224,7 +256,8 @@ for index in range(0, len(timeline)):
         'list_name': card_list['name'],
         'datetime_in': local_datetime_in,
         'datetime_out': local_datetime_out,
-        'duration': duration})
+        'duration': duration,
+        'members': members})
 
 # ============
 # WRITE TO CSV
@@ -237,14 +270,15 @@ with open(csvpath, 'wb') as csvfile:
     writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
     local_time_now = utc_now.astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S")
     writer.writerow(["As of %s (%s)" % (local_time_now, local_tz),
-                    "", "", "", "", "", ""])
-    writer.writerow(["Card ID", "Card Name", "Board", "List",
+                    "", "", "", "", "", "", ""])
+    writer.writerow(["Card ID", "Card Name", "Members", "Board", "List",
                      "In (%s)" % local_tz,
                      "Out (%s)" % local_tz,
                      "Duration (Seconds)"])
 
     for row in time_spent_in_list:
         r = [row['card_id'], row['card_name'].encode('utf-8'),
+             ', '.join([m['fullName'] for m in row['members']]),
              row['board_name'], row['list_name'], row['datetime_in'],
              row['datetime_out'], row['duration']]
 
