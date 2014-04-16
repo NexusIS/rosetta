@@ -107,6 +107,27 @@ for event in timeline:
     card = event['data']['card']
     print "   %s | %s | %s" % (card['name'], event['date'], event['type'])
 
+# ========================
+# CACHE SELECTED CARD DATA
+# ========================
+
+card_data = []
+list_data = {}
+
+for board in boards:
+    card_data += get_json('/boards/%s/cards' % board['id'],
+                          'fields=idList,labels')
+    for item in get_json('/board/%s/lists' % board['id']):
+        list_data[item['id']] = item
+
+
+current_list_of = {}
+current_labels_of = {}
+
+for item in card_data:
+    current_list_of[item['id']] = list_data[item['idList']]
+    current_labels_of[item['id']] = item['labels']
+
 # ===========================================
 # CALCULATE TIME SPENT BY A CARD IN EACH LIST
 # ===========================================
@@ -114,9 +135,6 @@ for event in timeline:
 print "\nTime spent in each list:"
 
 time_spent_in_list = []
-
-# This will serve as cache for the current list of a card
-current_list_of = {}
 
 # Used throughout the loop to determine who are the members of current card
 members = []
@@ -210,15 +228,8 @@ for index in range(0, len(timeline)):
     elif 'list' in event['data'].keys():
         card_list = event['data']['list']
     else:
-        # The event doesn't have the card's list information.
-        # Let's assume it's the current list where the card is
-        # in. We can query that via /cards/[card id]/list but
-        # first check if we've already done that by inspecting
-        # our cache of current lists.
-        if card['id'] not in current_list_of.keys():
-            current_list_of[card['id']] = \
-                get_json('/cards/%s/list' % card['id'])
-
+        # The event doesn't have the card's list information. Let's
+        # assume it's the current list where the card is in.
         card_list = current_list_of[card['id']]
 
     # If it's currently in the 'Done' list and it never left,
