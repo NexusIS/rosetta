@@ -264,17 +264,28 @@ for index in range(0, len(timeline)):
     else:
         labels = []
 
+    # Extract the story points, if any
+    match = re.match("\((\d+\.?\d*)\) .*", card['name'])
+    if match is None:
+        story_points = ''
+    else:
+        story_points = match.group(1)
+
+    # Remove the story points from the card name
+    card_name = re.sub("\((\d+\.?\d*)\) .*", "", card['name'].strip())
+
     # Finally, record the data
     time_spent_in_list.append({
         'card_id': card['id'],
-        'card_name': card['name'].strip(),
+        'card_name': card_name,
         'board_name': event['data']['board']['name'],
         'list_name': card_list['name'],
         'datetime_in': local_datetime_in,
         'datetime_out': local_datetime_out,
         'duration': duration,
         'members': members,
-        'labels': labels})
+        'labels': labels,
+        'story_points': story_points})
 
 # ============
 # WRITE TO CSV
@@ -287,8 +298,8 @@ with open(csvpath, 'wb') as csvfile:
     writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
     local_time_now = utc_now.astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S")
     writer.writerow(["As of %s (%s)" % (local_time_now, local_tz),
-                    "", "", "", "", "", "", "", ""])
-    writer.writerow(["Card ID", "Card Name", "Labels",
+                    "", "", "", "", "", "", "", "", ""])
+    writer.writerow(["Card ID", "Card Name", "Points", "Labels",
                      "Members", "Board", "List",
                      "In (%s)" % local_tz,
                      "Out (%s)" % local_tz,
@@ -296,6 +307,7 @@ with open(csvpath, 'wb') as csvfile:
 
     for row in time_spent_in_list:
         r = [row['card_id'], row['card_name'].encode('utf-8'),
+             row['story_points'],
              ', '.join([l['name'] for l in row['labels']]),
              ', '.join([m['fullName'] for m in row['members']]),
              row['board_name'], row['list_name'], row['datetime_in'],
