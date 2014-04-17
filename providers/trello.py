@@ -94,6 +94,7 @@ timeline = []
 for board in boards:
     timeline += get_json('/boards/%s/actions' % board['id'],
                          'filter=createCard,updateCard:idList,' +
+                         'updateCard:closed,' +
                          'moveCardFromBoard,moveCardToBoard,' +
                          'addMemberToCard,removeMemberFromCard')
 
@@ -117,7 +118,7 @@ list_data = {}
 
 for board in boards:
     card_data += get_json('/boards/%s/cards' % board['id'],
-                          'fields=idList,labels')
+                          'fields=idList,labels&filter=all')
     for item in get_json('/board/%s/lists' % board['id']):
         list_data[item['id']] = item
 
