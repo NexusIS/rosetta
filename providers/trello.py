@@ -105,7 +105,7 @@ print "\nTimeline:"
 
 for event in timeline:
     card = event['data']['card']
-    print "   %s | %s | %s" % (card['name'].encode('utf-8'),
+    print "   %s | %s | %s" % (card['name'].encode('ascii', 'ignore'),
                                event['date'], event['type'])
 
 # ========================
