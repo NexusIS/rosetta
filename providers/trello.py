@@ -243,10 +243,6 @@ for index in range(0, len(timeline)):
     card_name = (card_name[:30].strip() + '...') \
         if len(card_name) > 30 else card_name
 
-    print "   %s %s | %s:%s | time: %s" % \
-          (card['id'], card_name, event['data']['board']['name'],
-           card_list['name'], duration)
-
     # Convert times to local time for display
     # TODO: Make the local tz configurable
     local_tz = pytz.timezone(config['common']['local_timezone'])
