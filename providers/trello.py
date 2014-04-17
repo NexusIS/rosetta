@@ -105,7 +105,8 @@ print "\nTimeline:"
 
 for event in timeline:
     card = event['data']['card']
-    print "   %s | %s | %s" % (card['name'], event['date'], event['type'])
+    print "   %s | %s | %s" % (card['name'].encode('utf-8'),
+                               event['date'], event['type'])
 
 # ========================
 # CACHE SELECTED CARD DATA
