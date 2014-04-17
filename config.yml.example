@@ -12,9 +12,18 @@ trello:
     # match group in the regex must be the sprint number
     sprint_backlog: "Sprint (\\d+)"
 
-  # Get your api_key and api_secret from https://trello.com/1/appKey/generate
+  # Get your api_key from https://trello.com/1/appKey/generate
   api_key: <YOUR API KEY HERE>
-  api_secret: <YOUR API SECRET HERE>
+
+  # To get a token:
+  #   1. Log in to Trello on your browser
+  #   2. Copy the value of api_key above and use it to
+  #      replace APIKEY in https://trello.com/1/authorize?key=APIKEY&name=Rosetta&expiration=never&response_type=token
+  #   3. Paste the resulting URL in your browser
+  #   4. Click 'Allow'
+  #   5. Copy the generated token and paste it below:
+  api_token: <YOUR API TOKEN HERE>
+
 
   # Helps trello.py determine if a card is done. Only the
   # 'done' section is relevant for now. Put the names of

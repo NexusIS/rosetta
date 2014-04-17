@@ -15,7 +15,7 @@ with open(cfgfile_path, 'r') as cfgfile:
 
 name_patterns = config['trello']['board_name_patterns']
 api_key = config['trello']['api_key']
-api_secret = config['trello']['api_secret']
+api_token = config['trello']['api_token']
 
 print """
          {
@@ -37,7 +37,7 @@ print """
 
 def get_json(path, params=None):
     url = "https://trello.com/1%s?limit=1000&key=%s&token=%s" % \
-          (path, api_key, api_secret)
+          (path, api_key, api_token)
 
     if params is not None:
         url += ("&%s" % params)
