@@ -134,8 +134,6 @@ for item in card_data:
 # CALCULATE TIME SPENT BY A CARD IN EACH LIST
 # ===========================================
 
-print "\nTime spent in each list:"
-
 time_spent_in_list = []
 
 # Used throughout the loop to determine who are the members of current card
