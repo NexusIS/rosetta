@@ -265,14 +265,13 @@ for index in range(0, len(timeline)):
         labels = []
 
     # Extract the story points, if any
-    match = re.match("\((\d+\.?\d*)\) .*", card['name'])
+    match = re.match("\((\d+\.?\d*)\) ?(.*)", card['name'])
     if match is None:
         story_points = ''
+        card_name = card['name']
     else:
         story_points = match.group(1)
-
-    # Remove the story points from the card name
-    card_name = re.sub("\((\d+\.?\d*)\) .*", "", card['name'].strip())
+        card_name = match.group(2)
 
     # Finally, record the data
     time_spent_in_list.append({
