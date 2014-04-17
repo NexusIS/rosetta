@@ -10,7 +10,7 @@ trello:
 
     # Regex of your sprint backlog boards' names. The first
     # match group in the regex must be the sprint number
-    sprint_backlog: "Sprint (\\d+)"
+    sprint_backlog: "Sprint (\\d+).*"
 
   # Get your api_key from https://trello.com/1/appKey/generate
   api_key: <YOUR API KEY HERE>
