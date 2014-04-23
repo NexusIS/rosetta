@@ -33,6 +33,8 @@ print """
    \             y'
     `-.._____..-'
 """
+# Coffee mug ASCII art by Felix Lee
+# http://www.ascii-art.de/ascii/c/coffee.txt
 
 
 def get_json(path, params=None):
